@@ -1,99 +1,94 @@
-import React, { useState, useEffect, useRef} from 'react';
-import { Form, Button, Message, Segment, TextArea, Divider } from 'semantic-ui-react'
-import { HeaderMessage, FooterMessage } from '../components/Common/WelcomeMessage.js'
+import React, { useState, useEffect } from "react";
+import { Form, Button, Message, Segment, Divider } from "semantic-ui-react";
+import { loginUser } from "../utils/authUser";
+import { HeaderMessage, FooterMessage } from "../components/Common/WelcomeMessage";
 
-function login(props) {
+function Login() {
+  const [user, setUser] = useState({
+    email: "",
+    password: ""
+  });
 
-    const [user,setUser]=useState({
-        email:"",
-        password:"",
-    })
+  const { email, password } = user;
+  const [showPassword, setShowPassword] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
+  const [formLoading, setFormLoading] = useState(false);
+  const [submitDisabled, setSubmitDisabled] = useState(true);
 
-    const [showPassword,setShowPassword] = useState(false)
-    const [errorMessage,setErrorMessage] = useState(null)
-    const [formLoading,setFormLoading] = useState(false)
-    const [submitDisabled, setSubmitDisabled] = useState(true)
+  const handleChange = e => {
+    const { name, value } = e.target;
 
-    const {email, password} = user
+    setUser(prev => ({ ...prev, [name]: value }));
+  };
 
-    const handleChange =(e)=>{
-        const {name,value} = e.target
+  useEffect(() => {
+    const isUser = Object.values({ email, password }).every(item => Boolean(item));
+    isUser ? setSubmitDisabled(false) : setSubmitDisabled(true);
+  }, [user]);
 
-        setUser(prev=>({...prev,[name]:value}))
-    }
+  const handleSubmit = async e => {
+    e.preventDefault();
 
-    useEffect(()=>{
-        const isUser = Object.values({email,password}).every(item=>Boolean(item))
-        isUser ? setSubmitDisabled(false) : setSubmitDisabled(true)
+    await loginUser(user, setErrorMsg, setFormLoading);
+  };
 
-    },[user])
+  return (
+    <>
+      <HeaderMessage />
+      <Form loading={formLoading} error={errorMsg !== null} onSubmit={handleSubmit}>
+        <Message
+          error
+          header="Oops!"
+          content={errorMsg}
+          onDismiss={() => setErrorMsg(null)}
+        />
 
+        <Segment>
+          <Form.Input
+            required
+            label="Email"
+            placeholder="Email"
+            name="email"
+            value={email}
+            onChange={handleChange}
+            fluid
+            icon="envelope"
+            iconPosition="left"
+            type="email"
+          />
 
-    const handleSubmit =(e)=>{
-        e.preventDefault()
-    }
+          <Form.Input
+            label="Password"
+            placeholder="Password"
+            name="password"
+            value={password}
+            onChange={handleChange}
+            fluid
+            icon={{
+              name: "eye",
+              circular: true,
+              link: true,
+              onClick: () => setShowPassword(!showPassword)
+            }}
+            iconPosition="left"
+            type={showPassword ? "text" : "password"}
+            required
+          />
 
-    return (
-        <>
-            <HeaderMessage />
-            <Form loading={formLoading} error={errorMessage!==null} onSubmit={handleSubmit}>
+          <Divider hidden />
+          <Button
+            icon="signup"
+            content="Login"
+            type="submit"
+            color="orange"
+            disabled={submitDisabled}
+          />
+        </Segment>
+      </Form>
 
-            <Message 
-                error 
-                header="Oops!" 
-                content={errorMessage} 
-                onDismiss={()=>setErrorMessage(null)}
-            />
-
-            <Segment>
-            <Form.Input 
-                    label="Email" 
-                    placeholder="Email" 
-                    name="email" 
-                    value={email} 
-                    onChange={handleChange} 
-                    fluid 
-                    icon="envelope"
-                    iconPosition="left"
-                    type="email"
-                    required
-                />
-
-                <Form.Input 
-                    label="Password" 
-                    placeholder="Password" 
-                    name="password" 
-                    value={password} 
-                    onChange={handleChange} 
-                    fluid 
-                    icon={{
-                        name:"eye",
-                        circular:true,
-                        link:true,
-                        onClick:()=>setShowPassword(!showPassword)
-                     }}
-                    iconPosition="left"
-                    type={showPassword ? "text" : "password"}
-                    required
-                />
-
-                <Divider hidden />
-
-                <Button 
-                    icon="signup"
-                    content="Login"
-                    type="submit"
-                    color="orange"
-                    disabled={submitDisabled}
-                />
-
-            </Segment>
-
-            </Form>
-
-            <FooterMessage />
-        </>
-    );
+      <FooterMessage />
+    </>
+  );
 }
 
-export default login;
+export default Login;
